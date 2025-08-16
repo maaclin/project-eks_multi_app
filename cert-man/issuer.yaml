@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: issuer
+spec:
+  acme:
+    server: "https://acme-v02.api.letsencrypt.org/directory"
+    email: "ysolom90@gmail.com"
+    privateKeySecretRef:
+      name: issuer-key
+    solvers:
+    - dns01:
+        route53:
+          hostedZoneID: Z06820233RGKWT7NAQ14I
+          region: eu-west-2
+      selector:
+        dnsZones:
+        - "eks.ysolomprojects.co.uk"
+    - http01:
+        ingress:
+          class: nginx
