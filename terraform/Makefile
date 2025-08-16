@@ -15,8 +15,13 @@ validate:
 
 plan:
 	terraform validate
+	tflint --init 
+	tflint
 	terraform plan
 
 lint:
 	tflint --init 
+	tflint
 	
+apply:
+	terraform apply -auto-approve

@@ -1,0 +1,12 @@
+
+provider: aws
+env:
+- name: AWS_DEFAULT_REGION
+  value: eu-west-2
+
+domainFilters: 
+- ysolomprojects.co.uk
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::354918400698:role/external-dns"
