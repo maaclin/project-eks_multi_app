@@ -51,21 +51,21 @@ resource "helm_release" "external_dns" {
 
 }
 
-# resource "helm_release" "argocd_deploy" {
-#   name       = "argocd"
-#   repository = "https://argoproj.github.io/argo-helm"
-#   chart      = "argo-cd"
-#   timeout    = 600
-#   version    = "7.7.9"
+resource "helm_release" "argocd_deploy" {
+  name       = "argocd"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argo-cd"
+  timeout    = 600
+  version    = "7.7.9"
 
-#   create_namespace = true
-#   namespace        = "argo-cd"
+  create_namespace = true
+  namespace        = "argo-cd"
 
-#   values = [
-#     file("helm-values/argo-cd.yaml")
-#   ]
+  values = [
+    file("helm-values/argo-cd.yaml")
+  ]
 
-#   depends_on = [helm_release.nginx_ingress, helm_release.cert_manager, helm_release.external_dns]
+  depends_on = [helm_release.nginx_ingress, helm_release.cert_manager, helm_release.external_dns]
 
 
-# }
+}
