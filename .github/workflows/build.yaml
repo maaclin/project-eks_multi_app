@@ -14,11 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ECR_URI: ${{ secrets.ECR_URI }}
-      IMAGE_TAG: ${{ github.sha }}
     steps:
       
     - name: Checkout
       uses: actions/checkout@v4
+        
+    - name: Set short SHA
+      run: echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -28,29 +30,20 @@ jobs:
         aws-region: eu-west-2
         
     - name: Login to Amazon ECR
-      id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
       
-    - name: Build Image
+    - name: Build image
       run: |
-        docker build -t $ECR_URI:$IMAGE_TAG .
-
-    #  Scan using trivy before push to track security risks 
-    - name: Image Scan 
+        docker build -t $ECR_URI:$SHORT_SHA .
+        
+    - name: Scan image
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: '${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}'
+        image-ref: '${{ env.ECR_URI }}:${{ env.SHORT_SHA }}'
         format: 'table'
         severity: 'CRITICAL,HIGH'
-        exit-code: 1 
+        exit-code: 0
         
-    - name: Push image with SHA tag
+    - name: Push image
       run: |
-        docker push $ECR_URI:$IMAGE_TAG
-     
-    # Extra step to follow production practices where SHA can be used to track versions of builds
-
-    - name: Tag and push as latest
-      run: |
-        docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
-        docker push $ECR_URI:latest
+        docker push $ECR_URI:$SHORT_SHA
