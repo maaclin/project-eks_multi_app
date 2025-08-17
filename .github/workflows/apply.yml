@@ -1,0 +1,44 @@
+
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+  workflow_dispatch:
+
+defaults:
+    run:
+      working-directory: ./terraform
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+        
+    - name: Terraform check
+      run: |
+        terraform init
+        terraform fmt -check
+        terraform validate
+
+    - name: Linting 
+      uses: terraform-linters/setup-tflint@v4
+    - run: |
+       tflint --init
+       tflint
+
+    - name: Checkov Scan
+      id: checkov
+      uses: bridgecrewio/checkov-action@v2
+      with : 
+        check: CKV_AWS_1, CKV_AWS_2, CKV_AWS_41
+  
+    - name: Terraform Plan
+      run: terraform plan

@@ -1,0 +1,56 @@
+name: CI
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'app/**'
+
+defaults:
+  run:
+    working-directory: ./app 
+        
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ECR_URI: ${{ secrets.ECR_URI }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-2
+        
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      
+    - name: Build Image
+      run: |
+        docker build -t $ECR_URI:$IMAGE_TAG .
+
+    #  Scan using trivy before push to track security risks 
+    - name: Image Scan 
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}'
+        format: 'table'
+        severity: 'CRITICAL,HIGH'
+        exit-code: 1 
+        
+    - name: Push image with SHA tag
+      run: |
+        docker push $ECR_URI:$IMAGE_TAG
+     
+    # Extra step to follow production practices where SHA can be used to track versions of builds
+
+    - name: Tag and push as latest
+      run: |
+        docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
+        docker push $ECR_URI:latest
