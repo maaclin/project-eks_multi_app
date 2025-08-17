@@ -7,12 +7,7 @@ on:
         confirm_destroy:
           description: 'Type "yes" to confirm destruction'
           required: true
-          default: 'no'
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: ${{ secrets.AWS_REGION }} 
-  
+
 defaults:
   run:
     working-directory: ./terraform/
@@ -26,13 +21,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Configure AWS Credentials
+    - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-    
+        role-to-assume: '${{ secrets.DESTROY_ROLE_ARN}}'
+        aws-region: eu-west-2
+
     - name: Terraform Destroy
       if: github.event.inputs.confirm_destroy == 'yes'
       run: |
