@@ -3,3 +3,4 @@
 .terraform.lock.hcl
 .tflint.hcl
 terraform.tfstate
+manual.yml

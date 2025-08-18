@@ -30,7 +30,6 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 ```
 ├── .github/workflows
 │   ├── apply.yml
-│   ├── argo-cd.yaml
 │   ├── build.yaml
 │   └── destroy.yaml
 ├── app
@@ -38,25 +37,29 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 │   ├── index.html
 │   └── ys2025.pdf
 ├── argo-cd
+│   ├── manifests
+│   │   └── deployment.yaml
 │   └── argo-cd.yaml
 ├── cert-man
-│   ├── issuer.yaml
-│   └── terraform.tfstate
-├── manifests
-│   └── deployment.yaml
-├── README.md
-└── terraform
-    ├── helm-values
-    │   ├── argo-cd.yaml
-    │   ├── cert-manager.yaml
-    │   └── external-dns.yaml
-    ├── helm.tf
-    ├── eks.tf
-    ├── irsa.tf
-    ├── locals.tf
-    ├── Makefile
-    ├── providers.tf
-    └── vpc.tf
+│   └── issuer.yaml
+├── images
+│   ├── argoapp.gif
+│   └── EKS-Project.png
+├── terraform
+│   ├── helm-values
+│   │   ├── argo-helm.yaml
+│   │   ├── cert-manager.yaml
+│   │   └── external-dns.yaml
+│   ├── scripts
+│   │   └── cleanup.sh
+│   ├── eks.tf
+│   ├── helm.tf
+│   ├── irsa.tf
+│   ├── locals.tf
+│   ├── Makefile
+│   ├── providers.tf
+│   └── vpc.tf
+└── README.md
 ```
 
 ## Infrastructure Setup
@@ -73,11 +76,12 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 
 - ArgoCD: Automated deployment of our application deployed from insde the cluster to sync manifests from GitHub 
 
-- End to end flow: Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress controller to our service and lastly our pods. TLS is automatically applied by cert manager using Let's encrypt so our webpage is served over HTTPS. 
+- End to end flow: 
+Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress controller to our service and lastly our pods. TLS is automatically applied by cert manager using Let's encrypt so our webpage is served over HTTPS. Egress traffic routed through NAT Gateway. 
 
 ## Security Considerations
 
-- Scanning in CI before apply: Tflint and Checkov for IaC, Trivy for Docker/K8s
+- Scanning in CI before apply: Tflint and Checkov for IaC, Trivy for Docker image
 - Rule of least privilege for IRSA roles
 - All workflows use OIDC instead of GitHub secrets credentials: 
 
@@ -86,20 +90,20 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 ```
 └── workflows
     ├── apply.yml
-    ├── argocd.yaml
     ├── build.yaml
     └── destroy.yaml
 ```
 
 App changes trigger the Docker workflow:
-- Build image → push to ECR 
+- Build image → scan with trivy → push to ECR 
 
 Push to main triggers the Terraform workflow:
 - IaC scans (tflint, tfsec, checkov) + trivy config scan
 - Terraform init/plan/apply provisions and updates VPC, EKS, IRSA, Helm resources.
 
 Terraform destroy:
-- Manual workflow trigger to trigger Terraform Destroy
+- Destroy helm created resources first to ensure permissions error does not occur when destroying 
+- Manual trigger to destroy infrastructure
 
 Argo CD:
 - Installs Argo CD
