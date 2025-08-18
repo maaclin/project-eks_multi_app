@@ -21,7 +21,7 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 
 ![Architecture-diagram](./images/EKS-Project.png)
 
-[![Loom video](./images/argoapp.gif)]
+![Loom video](./images/argoapp.gif)
 
 ---
 

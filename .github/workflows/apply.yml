@@ -27,6 +27,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with: 
+        terraform_version: "1.9.5" 
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -34,9 +39,6 @@ jobs:
         role-session-name: github-actions-session
         aws-region: eu-west-2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-    
     - name: Terraform validate
       run: |
         terraform init
@@ -75,4 +77,4 @@ jobs:
       run: |
         aws eks update-kubeconfig --region eu-west-2 --name eks-cluster
         kubectl wait --for=condition=Ready nodes --all --timeout=300s
-        kubectl apply -f cert-man/issuer.yaml
+        kubectl apply -f ./cert-man/issuer.yaml
