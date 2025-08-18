@@ -4,38 +4,45 @@ name: Terraform Destroy
 on:
   workflow_dispatch:
     inputs:
-        confirm_destroy:
-          description: 'Type "yes" to confirm destruction'
-          required: true
+      confirm_destroy:
+        description: 'Type "yes" to confirm destruction'
+        required: true
+
+permissions:
+  id-token: write
 
 defaults:
   run:
     working-directory: ./terraform/
-    
+
 jobs:
-  terraform:
-    name: 'Terraform Destroy'
+  destroy:
+    name: "Terraform Destroy"
     runs-on: ubuntu-latest
-  
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: '${{ secrets.DESTROY_ROLE_ARN }}'
-        aws-region: eu-west-2
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Terraform Destroy
-      if: github.event.inputs.confirm_destroy == 'yes'
-      run: |
-        terraform init
-        terraform destroy -auto-approve -input=false
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "${{ secrets.ROLE_ARN }}"
+          aws-region: eu-west-2
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.2"
 
-    - name: Warn if Destroy Not Confirmed
-      if: github.event.inputs.confirm_destroy != 'yes'
-      run: |
-        echo "Terraform destroy was skipped because 'yes' was not provided as confirmation."
-        echo "No resources were destroyed."
+      - name: Terraform Destroy
+        if: github.event.inputs.confirm_destroy == 'yes'
+        run: |
+          terraform init
+          terraform destroy -auto-approve -input=false
+
+      - name: Warn if Destroy Not Confirmed
+        if: github.event.inputs.confirm_destroy != 'yes'
+        run: |
+          echo "Terraform destroy was skipped because 'yes' was not provided as confirmation."
+          echo "No resources were destroyed."

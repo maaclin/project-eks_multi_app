@@ -61,17 +61,25 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 
 ## Infrastructure Setup
 
-- State backend: S3 (remote state) with native state locking as AWS moves to deprecate DynamoDB locking.  
-- EKS: private node subnets; control plane access as required.
-- IRSA: pods assume AWS roles via service account annotations
-- Helm: external-dns creates the DNS record in Route 53. cert-manager requests a certificate via the ClusterIssuer from Let's Encrypt and attaches to Ingress → HTTPS.
-- ArgoCD: automated deployment of our application 
+- State backend: S3 (remote state) with native state locking as AWS moves to deprecate DynamoDB locking. 
+
+- VPC: One nat gateway across 2 AZs for cost optimsation, single point of failure ignored for small project. Ingress traffic managed by NGINX controller, Outbound routed through NAT Gateway
+
+- EKS: Private node subnets; public access for us to interact with cluster. IRSA enabled, Cluster Admin Permissions enabled.
+
+- IRSA: Pods assume AWS roles via service account annotations without hardcoding AWS credentials 
+
+- Helm: External-DNS creates the DNS record in Route 53. Cert-Manager requests a certificate via the ClusterIssuer from Let's Encrypt and attaches to ingress, pointing them at the clusters NLB. Nginx Ingress handles ingress traffic into the cluster to the service. 
+
+- ArgoCD: Automated deployment of our application deployed from insde the cluster to sync manifests from GitHub 
+
+- End to end flow: Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress controller to our service and lastly our pods. TLS is automatically applied by cert manager using Let's encrypt so our webpage is served over HTTPS. 
 
 ## Security Considerations
 
 - Scanning in CI before apply: Tflint and Checkov for IaC, Trivy for Docker/K8s
 - Rule of least privilege for IRSA roles
-- OIDC trust policy used instead of injecting GitHub secrets
+- All workflows use OIDC instead of GitHub secrets credentials: 
 
 ## CI-CD  
 
@@ -88,27 +96,28 @@ App changes trigger the Docker workflow:
 
 Push to main triggers the Terraform workflow:
 - IaC scans (tflint, tfsec, checkov) + trivy config scan
-- Terraform init/plan/apply creates/updates VPC, EKS, IRSA, Helm etc.
+- Terraform init/plan/apply provisions and updates VPC, EKS, IRSA, Helm resources.
 
 Terraform destroy:
 - Manual workflow trigger to trigger Terraform Destroy
 
 Argo CD:
 - Installs Argo CD
-- Apply an Argo application that points to our repo so future changes auto-sync.
+- Monitors our repo so future changes auto-sync
+- Decodes password for us to access our setup 
 
 ## Cost Comparison
 
 - EKS control plane hourly charge, node instances, data transfer, Elastic IPs/ALBs if used, Route 53 queries, DNS validation traffic and ECR storage.
 
-- S3 + CloudFront is typically pennies for a small site.
+- S3 + CloudFront is typically next to nothing for a small site.
 
 ## Troubleshooting
 
-- Ingress not resolving: check external-dns logs; verify hosted zone and domain filters match.
+- Ingress not resolving: Check external-dns logs; verify hosted zone and domain filters match.
 
-- Certificate pending: check cert-manager Order/Challenge CRDs and that Route 53 records exist; ensure IAM perms via IRSA.
+- Certificate pending: Check cert-manager challenges  and that Route 53 records exist; ensure IAM permissions via IRSA.
 
-- Argo not syncing: confirm repo URL, path and branch; check Argo Application status and events.
+- Argo not syncing: Confirm repo URL, path and branch; check Argo Application status and events.
 
-- kubectl auth issues: confirm aws eks update-kubeconfig ran with the right cluster/region/role.
+- kubectl auth issues: Confirm aws eks update-kubeconfig ran with the right cluster/region/role.
