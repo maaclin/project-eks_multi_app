@@ -1,5 +1,5 @@
 
-name: ArgoCD + K8s
+name: ArgoCD
 
 on:
   workflow_dispatch:
