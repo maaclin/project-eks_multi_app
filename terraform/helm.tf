@@ -62,7 +62,7 @@ resource "helm_release" "argocd_deploy" {
   namespace        = "argo-cd"
 
   values = [
-    file("helm-values/argo-cd.yaml")
+    file("helm-values/argo-helm.yaml")
   ]
 
   depends_on = [helm_release.nginx_ingress, helm_release.cert_manager, helm_release.external_dns]

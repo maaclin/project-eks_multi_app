@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/maaclin99/project-eks_multi_app.git
+    repoURL: https://github.com/maaclin/project-eks_multi_app.git
     targetRevision: HEAD
     path: manifests
 

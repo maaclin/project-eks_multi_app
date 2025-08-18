@@ -12,48 +12,51 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 - [Infrastructure Setup](#infrastructure-setup)
 - [How It Works](#how-it-works)
 - [Security Considerations](#security-considerations)
-- [CI/CD](#cicd)
+- [CI/CD](#CI-CD)
 - [Cost Comparison](#Costs)
 - [Troubeshooting](#Decisions)
-
 
 ---
 ## Architecture
 
-![Architecture-diagram](placeholder)
+![Architecture-diagram](./images/EKS-Project.png)
 
-! Loom video
-
-! ArgoCD screenshot
+![Loom video](./images/argoapp.mp4)
 
 ---
 
 ## Project Structure
 
 ```
-├── README.md
+├── .github/workflows
+│   ├── apply.yml
+│   ├── argo-cd.yaml
+│   ├── build.yaml
+│   └── destroy.yaml
 ├── app
 │   ├── Dockerfile
 │   ├── index.html
-│   ├── ys2025.pdf
-│   └── images
-│       └── portfolio.png
+│   └── ys2025.pdf
+├── argo-cd
+│   └── argo-cd.yaml
 ├── cert-man
-│   └── issuer.yaml
+│   ├── issuer.yaml
+│   └── terraform.tfstate
 ├── manifests
 │   └── deployment.yaml
+├── README.md
 └── terraform
-    ├── eks.tf
+    ├── helm-values
+    │   ├── argo-cd.yaml
+    │   ├── cert-manager.yaml
+    │   └── external-dns.yaml
     ├── helm.tf
+    ├── eks.tf
     ├── irsa.tf
     ├── locals.tf
     ├── Makefile
     ├── providers.tf
-    ├── vpc.tf
-    └── helm-values
-        ├── argo-cd.yaml
-        ├── cert-manager.yaml
-        └── external-dns.yaml
+    └── vpc.tf
 ```
 
 ## Infrastructure Setup
@@ -61,12 +64,14 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 - State backend: S3 (remote state) with native state locking as AWS moves to deprecate DynamoDB locking.  
 - EKS: private node subnets; control plane access as required.
 - IRSA: pods assume AWS roles via service account annotations
-- Helm: external-dns reconciles the DNS record in Route 53. cert-manager requests a certificate via the ClusterIssuer from Let's Encrypt and attaches to Ingress → HTTPS.
+- Helm: external-dns creates the DNS record in Route 53. cert-manager requests a certificate via the ClusterIssuer from Let's Encrypt and attaches to Ingress → HTTPS.
+- ArgoCD: automated deployment of our application 
 
 ## Security Considerations
 
 - Scanning in CI before apply: Tflint and Checkov for IaC, Trivy for Docker/K8s
 - Rule of least privilege for IRSA roles
+- OIDC trust policy used instead of injecting GitHub secrets
 
 ## CI-CD  
 
@@ -79,22 +84,22 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 ```
 
 App changes trigger the Docker workflow:
-- build image → push to ECR 
+- Build image → push to ECR 
 
 Push to main triggers the Terraform workflow:
 - IaC scans (tflint, tfsec, checkov) + trivy config scan
 - Terraform init/plan/apply creates/updates VPC, EKS, IRSA, Helm etc.
+
+Terraform destroy:
 - Manual workflow trigger to trigger Terraform Destroy
 
 Argo CD:
-- kubeconfig must be updated
-- Installs cert-manager + applies ClusterIssuer
 - Installs Argo CD
-- Apply applies an Argo application that points to this repo/path so future changes auto-sync.
+- Apply an Argo application that points to our repo so future changes auto-sync.
 
 ## Cost Comparison
 
-- EKS control plane hourly charge, node instances, data transfer, Elastic IPs/ALBs if used, Route 53 queries, DNS validation traffic, ECR storage.
+- EKS control plane hourly charge, node instances, data transfer, Elastic IPs/ALBs if used, Route 53 queries, DNS validation traffic and ECR storage.
 
 - S3 + CloudFront is typically pennies for a small site.
 

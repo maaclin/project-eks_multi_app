@@ -1,0 +1,45 @@
+
+name: ArgoCD + K8s
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 'Type "yes" to confirm deployment'
+        required: true
+        default: 'no'
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    working-directory: ./argo-cd
+jobs:
+  kubernetes-deploy:
+    name: Kubernetes Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: '${{ secrets.ROLE_ARN }}'
+          role-session-name: github-actions-session
+          aws-region: eu-west-2
+
+
+      - name: Apply application
+        run: kubectl apply -f argo-cd.yaml
+
+      - name: Deploy application
+        run: kubectl apply -f manifests/deployment.yaml
+        
+      - name: Decode password
+        run: kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d || echo "Secret not found"
+

@@ -1,5 +1,5 @@
 
-name: Deployment
+name: Apply
 
 on:
   push:
@@ -8,6 +8,11 @@ on:
     paths:
       - "terraform/**"
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
 
 defaults:
     run:
@@ -21,8 +26,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-        
-    - name: Terraform check
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: '${{ secrets.ROLE_ARN }}'
+        role-session-name: github-actions-session
+        aws-region: eu-west-2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+    
+    - name: Terraform validate
       run: |
         terraform init
         terraform fmt -check
@@ -38,7 +53,25 @@ jobs:
       id: checkov
       uses: bridgecrewio/checkov-action@v2
       with : 
-        check: CKV_AWS_1, CKV_AWS_2, CKV_AWS_41
+        directory: ./terraform
+        check: CKV_AWS_1,CKV_AWS_2,CKV_AWS_41
+
+    - name: Terraform Apply
+      run: |
+          terraform plan
+          terraform apply -auto-approve
+    
+    - name: Wait for EKS Cluster 
+      run: |
+          aws eks wait cluster-active --name eks-cluster --region eu-west-2
   
-    - name: Terraform Plan
-      run: terraform plan
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region eu-west-2 --name eks-cluster
+        kubectl wait --for=condition=Ready nodes --all --timeout=300s
+        kubectl apply -f cert-man/issuer.yaml
