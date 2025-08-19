@@ -97,24 +97,29 @@ Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress co
 App changes trigger the Docker workflow:
 - Build image → scan with trivy → push to ECR 
 
+![build](./images/build.png) 
+
 Push to main triggers the Terraform workflow:
 - IaC scans (tflint, tfsec, checkov) + trivy config scan
 - Terraform init/plan/apply provisions and updates VPC, EKS, IRSA, Helm resources.
-
-Terraform destroy:
-- Destroy helm created resources first to ensure permissions error does not occur when destroying 
-- Manual trigger to destroy infrastructure
 
 Argo CD:
 - Installs Argo CD
 - Monitors our repo so future changes auto-sync
 - Decodes password for us to access our setup 
 
+![apply](./images/apply.png) 
+
+Manual trigger to trigger terraform destroy:
+- Destroy helm created resources first to ensure permissions error does not occur when destroying using cleanup.sh script
+
+![apply](./images/destroy.png) 
+
 ## Cost Comparison
 
-- EKS control plane hourly charge, node instances, data transfer, Elastic IPs/ALBs if used, Route 53 queries, DNS validation traffic and ECR storage.
+- EKS control plane hourly charge, node instances, data transfer, Elastic IPs/ALBs if used, Route 53 queries, DNS validation traffic and ECR storage ~ can scale to over $100-120/month
 
-- S3 + CloudFront is typically next to nothing for a small site.
+- S3 + CloudFront is typically next to nothing for a small site ~ $2-10/ month
 
 ## Troubleshooting
 
