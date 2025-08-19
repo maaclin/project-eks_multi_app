@@ -29,6 +29,9 @@ jobs:
         with:
           role-to-assume: "${{ secrets.ROLE_ARN }}"
           aws-region: ${{ vars.REGION }} 
+      
+      - name: Script +x
+        run: chmod +x scripts/cleanup.sh
 
       - name: Uninstall helm resources
         run: scripts/cleanup.sh 
