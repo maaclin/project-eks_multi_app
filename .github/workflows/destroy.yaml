@@ -31,7 +31,7 @@ jobs:
           aws-region: ${{ vars.REGION }} 
 
       - name: Uninstall helm resources
-        run: ./scripts/cleanup.sh 
+        run: scripts/cleanup.sh 
         env: 
           REGION: "${{ vars.REGION }}"
           CLUSTER_NAME: "${{ vars.CLUSTER_NAME }}" 
