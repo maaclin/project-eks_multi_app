@@ -11,4 +11,4 @@ kubectl delete ingress ingress-host -n apps
 
 kubectl delete svc nginx-service -n apps
 
-kubectl delete deployment nginx-deploy -n apps
+kubectl delete deployment nginx-deployment -n apps
