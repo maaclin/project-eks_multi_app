@@ -1,6 +1,6 @@
 #!/bin/bash
 
-aws eks --region $REGION update-kubeconfig --name $CLUSTER_NAME
+aws eks --region "$REGION" update-kubeconfig --name "$CLUSTER_NAME"
 
 helm uninstall argocd -n argo-cd
 helm uninstall external-dns -n external-dns

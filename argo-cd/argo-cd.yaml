@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/maaclin/project-eks_multi_app.git
     targetRevision: HEAD
-    path: manifests
+    path: argo-cd/manifests
 
   destination:
     server: https://kubernetes.default.svc
