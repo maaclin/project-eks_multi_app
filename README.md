@@ -10,18 +10,18 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 - [Architecture](#Architecture)
 - [Project Structure](#project-structure)
 - [Infrastructure Setup](#infrastructure-setup)
-- [How It Works](#how-it-works)
-- [Security Considerations](#security-considerations)
-- [CI/CD](#CI-CD)
-- [Cost Comparison](#Costs)
-- [Troubeshooting](#Decisions)
+- [Security Considerations](#security-Considerations)
+- [CI/CD](#CI/CD)
+- [Cost Comparison](#Cost-Comparison)
+- [Troubeshooting](#Troubleshooting)
 
 ---
+
 ## Architecture
 
 ![Architecture-diagram](./images/EKS-Project.png)
 
-![Loom video](./images/argoapp.gif)
+[![Loom video](./images/argoapp.gif)](https://www.loom.com/share/20d5b03943854487a3c7cea0f41510a2?sid=df31ff28-17c3-48e1-8c35-4843fdae086d)
 
 ---
 
