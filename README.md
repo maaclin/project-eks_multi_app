@@ -21,7 +21,9 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 
 ![Architecture-diagram](./images/EKS-Project.png)
 
-[![Loom video](./images/argoapp.gif)](https://www.loom.com/share/20d5b03943854487a3c7cea0f41510a2?sid=df31ff28-17c3-48e1-8c35-4843fdae086d)
+## Click the image below for my Loom video breakdown: 
+
+[![Loom Video Thumbnail](./images/argoapp.gif)](https://www.loom.com/share/20d5b03943854487a3c7cea0f41510a2)
 
 ---
 
