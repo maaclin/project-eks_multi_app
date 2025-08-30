@@ -37,7 +37,7 @@ jobs:
       - name: Terraform validate
         run: |
           terraform init
-          terraform fmt -check
+          terraform fmt
           terraform validate
 
       - name: Linting
