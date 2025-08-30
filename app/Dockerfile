@@ -7,6 +7,10 @@ WORKDIR /usr/share/nginx/html/
 
 COPY . .
 
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
+
+USER nonroot:nonroot
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

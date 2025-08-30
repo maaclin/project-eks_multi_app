@@ -1,0 +1,25 @@
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "issuer"
+    hosts:
+      - grafana.eks.ysolomprojects.co.uk
+    tls:
+      - hosts:
+          - grafana.eks.ysolomprojects.co.uk
+        secretName: grafana
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "issuer"
+    hosts:
+      - prometheus.eks.ysolomprojects.co.uk
+    tls:
+      - hosts:
+          - prometheus.eks.ysolomprojects.co.uk
+        secretName: prometheus

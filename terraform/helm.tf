@@ -38,13 +38,9 @@ resource "helm_release" "external_dns" {
   create_namespace = true
   namespace        = "external-dns"
 
-  set = [
-    {
-      name  = "wait-for"
-      value = module.external_dns_irsa_role.iam_role_arn
-    }
-  ]
 
+  depends_on = [ module.external_dns_irsa_role ]
+  
   values = [
     file("./helm-values/external-dns.yaml")
   ]
@@ -67,5 +63,21 @@ resource "helm_release" "argocd_deploy" {
 
   depends_on = [helm_release.nginx_ingress, helm_release.cert_manager, helm_release.external_dns]
 
+
+}
+
+resource "helm_release" "kube_prom_stack" {
+  name       = "monitoring-stack"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+
+  create_namespace = true
+  namespace        = "monitoring"
+
+  values = [
+    file("./helm-values/grafana.yaml")
+  ]
+
+  depends_on = [ helm_release.nginx_ingress, helm_release.cert_manager, helm_release.external_dns]
 
 }
