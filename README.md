@@ -1,7 +1,7 @@
 
 # EKS Deployment Using Argo CD, Helm and Terraform 🚀
 
-Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster using **Terraform** for infrastructure, NGINX Ingress for traffic management, **GitHub Actions** and **Argo CD** for CI/CD, **Helm** for app & platform charts. 
+Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster using **Terraform** for infrastructure, NGINX Ingress for traffic management, **GitHub Actions** and **Argo CD** for CI/CD, **Helm** for app & platform charts with **Prometheus** and **Grafana** for monitoring. 
 
 --- 
 
@@ -50,6 +50,7 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 ├── terraform
 │   ├── helm-values
 │   │   ├── argo-helm.yaml
+│   │   ├── grafana.yaml
 │   │   ├── cert-manager.yaml
 │   │   └── external-dns.yaml
 │   ├── scripts
@@ -78,6 +79,14 @@ Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster us
 
 - ArgoCD: Automated deployment of our application deployed from insde the cluster to sync manifests from GitHub 
 
+- Prometheus + Grafana: Prometheus deployed to scrape metrics from many targets, including the NGINX Ingress controller, application pods and the EKS control plane components. Grafana deployed to visualise the data collected by Prometheus using dashboards and charts.
+
+
+![Prom](./images/prom.png)
+
+
+![Graf](./images/grafana.png)
+
 - End to end flow: 
 Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress controller to our service and lastly our pods. TLS is automatically applied by cert manager using Let's encrypt so our webpage is served over HTTPS. Egress traffic routed through NAT Gateway. 
 
@@ -85,7 +94,7 @@ Route 53 resolves DNS requests, reaches IGW, forwards to NLB to NGINX Ingress co
 
 - Scanning in CI before apply: Tflint and Checkov for IaC, Trivy for Docker image
 - Rule of least privilege for IRSA roles
-- All workflows use OIDC instead of GitHub secrets credentials: 
+- All workflows use OIDC instead of GitHub secrets credentials
 
 ## CI-CD  
 
