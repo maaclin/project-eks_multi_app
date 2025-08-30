@@ -1,7 +1,7 @@
 
 # EKS Deployment Using Argo CD, Helm and Terraform 🚀
 
-Goal: Deploys a simple portfolio web application to an **Amazon EKS** cluster using **Terraform** for infrastructure, NGINX Ingress for traffic management, **GitHub Actions** and **Argo CD** for CI/CD, **Helm** for app & platform charts with **Prometheus** and **Grafana** for monitoring. 
+This project outlines the deployment of a simple portfolio web application to an Amazon EKS cluster. The infrastructure is managed by Terraform, while a GitHub Actions and Argo CD pipeline handles CI/CD. The application is packaged and deployed using Helm, with NGINX Ingress for traffic management. The entire setup is monitored using Prometheus and Grafana.
 
 --- 
 
